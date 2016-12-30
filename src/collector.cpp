@@ -37,6 +37,7 @@ public:
   unsigned char marked;
   Object *next;
   Object(int v): marked(0), value(v) {}
+  // Variant<Pair> uses move semantics; this doesn't result in Pair being built twice.
   Object(Object* head, Object* tail): marked(0), value(Pair(head, tail)) {}
 
   class Pair {
@@ -113,10 +114,10 @@ public:
 
   /* The saddest fact: I went with using NULL as our end-of-stack
      discriminator rather than something higher-level, like an
-     Optional or Either-variant, because to use those I'd have to
-     user recursion to sweep the interpreter's stack, which means
-     I'm at the mercy of the C stack, complete with the cost of the
-     unwind at the end.  Bummer. */
+     Optional or Either-variant, because to use those I'd have to use
+     recursion to sweep the interpreter's stack, which means I'm at
+     the mercy of the C stack, complete with the cost of the unwind at
+     the end.  Bummer. */
 
   /* I look at this and ask, WWHSD?  What Would Herb Sutter Do? */
   

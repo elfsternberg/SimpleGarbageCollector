@@ -1,7 +1,6 @@
 project("Collector")
 
-list(APPEND CMAKE_C_FLAGS "-std=c99 ${CMAKE_C_FLAGS} -g -ftest-coverage -fprofile-arcs")
+list(APPEND CMAKE_CXX_FLAGS "${CXXMAKE_C_FLAGS} -std=c++1y -I../src/include/ -g")
 
-add_executable(collector
-    src/collector.c)
+add_executable(collector src/collector.cpp)
 
