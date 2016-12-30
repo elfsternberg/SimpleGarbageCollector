@@ -1,4 +1,3 @@
----
 **WHAT:**
 
 This is an example of Bob Nystrom's
@@ -40,6 +39,17 @@ Variant\<Pair\> only constructs a single pair.  Pretty nice.  I was also
 able to use both lambda-style and constructor-style visitors in my
 Variant, which was a fun little bonus.
 
+In the end, this becomes a pair of linked lists with different roots;
+one pair can orphan the lists, the other can't.  We traverse up the
+spine of the stack, following each scope's list and marking the objects
+as found.  We then traverse the other list and, for every object not
+marked, we get a pointer to it, collapse the list around it, and delete
+it.  Very simple and elegant.
+
+I hope, eventually, to move onto tri-color, multi-threaded garbage
+collectors someday.  According to Nystrom, *this* garbage collector is
+the actual algorithm used in early versions of Lua, so it's not a toy.
+
 **NOTE:**
 
 I have included the header files for the
@@ -63,3 +73,6 @@ From the base directory of the project:
     make
 
 And you should be able to run the basic tests.  It's just one file.
+Unfortunately, I was simpleminded with the include paths, so it can't be
+built anywhere but from the base directory without fiddling with the
+`CMakeLists.txt` file.
