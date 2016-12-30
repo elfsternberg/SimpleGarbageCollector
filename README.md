@@ -57,9 +57,9 @@ included in the Include directory.
 
 From the base directory of the project:
 
-mkdir build
+`mkdir build
 cd build
 cmake ..
 make
-
+`
 And you should be able to run the basic tests.  It's just one file.
