@@ -12,6 +12,11 @@ the new Variant container from C++17.
 I've never written a garbage collector before.  Now I know what it is
 and how it works.
 
+**STATUS:**
+
+**December 30, 2016:** This project is **complete.** No new features are
+being considered.
+
 **DETAILS:**
 
 The collector Nystrom wrote is a simple bi-color mark-and-sweep
