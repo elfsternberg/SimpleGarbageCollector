@@ -1,19 +1,7 @@
 #include <iostream>
+#include <type_traits>
+#include <variant>
 
-/* Requires the mapbox header-only variant found at
-   https://github.com/mapbox/variant
-
-   Compiles with: 
-   clang++ -std=c++14 -I./include/ -o collector collector.cpp
-   …  or
-   g++ -std=c++1y -I./include/ -g -o collector collector.cpp
-   … where 'include' has the variant headers.
-
-   clang version 3.9.1-svn288847-1~exp1 (branches/release_39)
-   g++ version (Ubuntu 4.8.5-2ubuntu1~14.04.1) 4.8.5
-
-*/
-#include <mapbox/variant.hpp>
 
 #define MAX_STACK 256
 #define MAX_BARRIER 8
@@ -50,7 +38,7 @@ public:
   /* This is mostly an exploration of a discriminated union, and
      making one work in the context of a primitive but functional
      garbage collector. */
-  mapbox::util::variant<int, Pair> value;
+  std::variant<int, Pair> value;
 };
 
 class VM {
@@ -78,19 +66,19 @@ public:
 
   /* Lambda-style visitors, enabling descent. */
   void mark(Object *o) {
-    auto marker = mapbox::util::make_visitor(
-        [this](int) {},
-        [this](Object::Pair p) {
-          this->mark(p.head);
-          this->mark(p.tail);
-    });
-    
     if (o->marked) {
       return;
     }
 
     o->marked = 1;
-    return mapbox::util::apply_visitor(marker, o->value);
+    return std::visit([this](auto &&arg) {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, int>) { }
+        else if constexpr (std::is_same_v<T, Object::Pair>) {
+            this->mark(arg.head);
+            this->mark(arg.tail);
+          }
+      }, o->value);
   }
 
   /* So named because each scope resembles a collection of objects
@@ -201,6 +189,30 @@ void test3() {
   my_assert(vm.numObjects == 7, "Should have reached objects.");
 }
 
+/* see: "Everything you need to know about std::variant from C++17, by Bartłomiej Filipek
+         https://www.bfilipek.com/2018/06/variant.html
+   Bartek says:
+
+   "Those two lines look like a bit of magic :) But all they do is they
+   create a struct that inherits all given lambdas and uses their
+   Ts::operator(). The whole structure can be now passed to std::visit."
+
+   As I understand it, the ellipsis there is the "Parameter Pack"
+   operator, used to define variadic types.  
+
+*/         
+
+template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
+template<class... Ts> overload(Ts...) -> overload<Ts...>;
+
+void tail_setter(std::variant<int, Object::Pair> &c, Object *tail) {
+  std::visit(
+            overload{
+                     [&tail](int i) {},
+                     [&tail](Object::Pair &p) { p.tail = tail; }
+            }, c);
+}
+
 void test4() {
   std::cout << "Test 4: Handle cycles." << std::endl;
   VM vm;
@@ -210,18 +222,10 @@ void test4() {
   vm.push(3);
   vm.push(4);
   Object* b = vm.push();
-
-  /* Constructor-based variant visitor. */
-  struct tail_setter {
-    Object* tail;
-    tail_setter(Object *t) : tail(t) {}
-    inline void operator()(int &i) {}
-    inline void operator()(Object::Pair &p) { p.tail = tail; }
-  };
   
-  /* Set up a cycle, and also make 2 and 4 unreachable and collectible. */
-  mapbox::util::apply_visitor(tail_setter(b), a->value);
-  mapbox::util::apply_visitor(tail_setter(a), b->value);
+  
+  tail_setter(a->value, b);
+  tail_setter(b->value, a);
   vm.collect();
   my_assert(vm.numObjects == 4, "Should have collected objects.");
 }

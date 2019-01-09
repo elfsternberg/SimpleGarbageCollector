@@ -12,6 +12,12 @@ the new Variant container from C++17.
 I've never written a garbage collector before.  Now I know what it is
 and how it works.
 
+**REQURIEMENTS:**
+
+This code has been tested with gcc-7.3, and should work on any
+C++17-compliant compiler with the relevant standard library.  Unlike the
+previous edition, it has not been tested with Clang.
+
 **STATUS:**
 
 **December 30, 2016:** This project is **complete.** No new features are
@@ -57,16 +63,9 @@ the actual algorithm used in early versions of Lua, so it's not a toy.
 
 **NOTE:**
 
-I have included the header files for the
-[Mapbox version of Variant](https://github.com/mapbox/variant) since the
-C++17 committee's standards haven't quite reached the general public and
-the Variant implementation is still a subject of some debate.  This
-implementation looks straightforward enough and is a header-only
-release.  It works with both GCC 4.8.5 and Clang 3.8, and that's good
-enough for me.
-
-The Mapbox variant is BSD licensed, and a copy of the license is
-included in the Include directory.
+The previous edition of this project used the MapBox variant class
+(https://github.com/mapbox/variant).  As of the stabilization of C++-17,
+the standard library's variant class works fine with the existing code.
 
 **BUILDING:**
 
